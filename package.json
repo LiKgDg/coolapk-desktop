@@ -24,6 +24,8 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "vue-tsc --noEmit",
     "tauri": "tauri",
+    "build:zip": "npm run tauri -- build --no-bundle && node scripts/package-windows-zip.mjs",
+    "package:zip": "node scripts/package-windows-zip.mjs",
     "android:init": "node scripts/android-build.mjs --init-only",
     "android:build": "node scripts/android-build.mjs",
     "version:set": "node scripts/set-version.mjs"

@@ -14,7 +14,7 @@ export function pruneBetaReleases(repository, keepTag, run = execFileSync, archi
   const published = JSON.parse(run('gh', ['release', 'view', keepTag, '--repo', repository,
     '--json', 'tagName,isDraft,isPrerelease,assets', '--jq',
     '{tagName,isDraft,isPrerelease,assetCount:(.assets|length)}'], options));
-  if (published.tagName !== keepTag || published.isDraft || !published.isPrerelease || published.assetCount < 12) {
+  if (published.tagName !== keepTag || published.isDraft || !published.isPrerelease || published.assetCount < 14) {
     throw new Error('新测试版本尚未完整公开，保留旧测试版本');
   }
   const lines = run('gh', ['api', `repos/${repository}/releases?per_page=100`, '--paginate', '--jq',

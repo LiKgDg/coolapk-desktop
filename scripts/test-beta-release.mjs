@@ -79,7 +79,7 @@ test('新测试版公开完整后仅删除更旧的 beta Release，保留正式�
   const archived = [];
   const removed = pruneBetaReleases('example/desktop', 'v1.31.0-beta.2', (command, args) => {
     assert.equal(command, 'gh');
-    if (args[1] === 'view') return JSON.stringify({ tagName: 'v1.31.0-beta.2', isDraft: false, isPrerelease: true, assetCount: 13 });
+    if (args[1] === 'view') return JSON.stringify({ tagName: 'v1.31.0-beta.2', isDraft: false, isPrerelease: true, assetCount: 15 });
     if (args[0] === 'api') {
       assert.ok(args.includes('--paginate'));
       return releases.map((release) => JSON.stringify(release)).join('\n');
@@ -107,7 +107,7 @@ test('归档保留 Markdown 原文，写入失败时阻止清理旧 Release', ()
   assert.ok(saved.includes('v1.31.0-beta.1 更新日志'));
   let deleted = false;
   assert.throws(() => pruneBetaReleases('example/desktop', 'v1.31.0-beta.2', (_, args) => {
-    if (args[1] === 'view') return JSON.stringify({ tagName: 'v1.31.0-beta.2', isDraft: false, isPrerelease: true, assetCount: 13 });
+    if (args[1] === 'view') return JSON.stringify({ tagName: 'v1.31.0-beta.2', isDraft: false, isPrerelease: true, assetCount: 15 });
     if (args[0] === 'api') return JSON.stringify({ tag_name: 'v1.31.0-beta.1', prerelease: true });
     deleted = true;
   }, () => { throw new Error('summary write failed'); }), /summary write failed/);
@@ -117,9 +117,9 @@ test('归档保留 Markdown 原文，写入失败时阻止清理旧 Release', ()
 
 test('草稿、未完整上传、正式版和查询失败均不触发测试版清理', () => {
   for (const state of [
-    { isDraft: true, isPrerelease: true, assetCount: 13 },
+    { isDraft: true, isPrerelease: true, assetCount: 15 },
     { isDraft: false, isPrerelease: true, assetCount: 11 },
-    { isDraft: false, isPrerelease: false, assetCount: 13 },
+    { isDraft: false, isPrerelease: false, assetCount: 15 },
   ]) {
     let queries = 0;
     assert.throws(() => pruneBetaReleases('example/desktop', 'v1.31.0-beta.2', (_, args) => {
@@ -203,11 +203,13 @@ test('版本脚本在隔离目录同步六个文件，并保持无参数 beta �
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('产物收集需要全部十二个平台包，缺失或重复时失败', () => {
+test('产物收集需要全部十四个平台包，缺失或重复时失败', () => {
   const root = mkdtempSync(join(tmpdir(), 'coolapk-beta-assets-'));
   const version = '1.31.0-beta.101';
   const names = [
-    ...['x64-setup.exe', 'arm64-setup.exe', 'x64-portable.exe', 'arm64-portable.exe', 'x64.dmg', 'aarch64.dmg', 'amd64.AppImage', 'amd64.deb'].map((suffix) => `coolapk-desktop_${version}_${suffix}`),
+    ...['x64-setup.exe', 'arm64-setup.exe', 'x64-portable.exe', 'arm64-portable.exe',
+      'x64-portable.zip', 'arm64-portable.zip',
+      'x64.dmg', 'aarch64.dmg', 'amd64.AppImage', 'amd64.deb'].map((suffix) => `coolapk-desktop_${version}_${suffix}`),
     `coolapk-desktop-${version}-1.x86_64.rpm`,
     ...['android-arm64.apk', 'android-arm64.aab', 'ios-arm64-unsigned.ipa'].map((suffix) => `coolapk-v${version}-${suffix}`),
   ];
@@ -222,7 +224,7 @@ test('产物收集需要全部十二个平台包，缺失或重复时失败', ()
     const result = run();
     assert.equal(result.status, 0, result.stderr);
     assert.ok(readFileSync(join(root, 'beta-notes.md'), 'utf8').includes('### 优化\n- 示例更新日志'));
-    assert.equal(readFileSync(join(root, 'beta-release/SHA256SUMS'), 'utf8').trim().split('\n').length, 12);
+    assert.equal(readFileSync(join(root, 'beta-release/SHA256SUMS'), 'utf8').trim().split('\n').length, 14);
     mkdirSync(join(root, 'beta-artifacts/duplicate'));
     writeFileSync(join(root, 'beta-artifacts/duplicate', names[0]), 'fixture');
     assert.notEqual(run().status, 0);

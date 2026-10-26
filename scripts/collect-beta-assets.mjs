@@ -11,12 +11,13 @@ function walk(directory) {
     return entry.isDirectory() ? walk(path) : [path];
   });
 }
-const files = walk('beta-artifacts').filter((path) => /\.(exe|dmg|deb|rpm|AppImage|apk|aab|ipa)$/i.test(path));
+const files = walk('beta-artifacts').filter((path) => /\.(exe|zip|dmg|deb|rpm|AppImage|apk|aab|ipa)$/i.test(path));
 const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const desktop = `coolapk-desktop[_-]${escaped}`;
 const required = [
   `${desktop}_(?:x64|amd64)-setup\\.exe`, `${desktop}_(?:arm64|aarch64)-setup\\.exe`,
   `${desktop}_x64-portable\\.exe`, `${desktop}_arm64-portable\\.exe`,
+  `${desktop}_x64-portable\\.zip`, `${desktop}_arm64-portable\\.zip`,
   `${desktop}_(?:x64|x86_64)\\.dmg`, `${desktop}_(?:aarch64|arm64)\\.dmg`,
   `${desktop}_(?:amd64|x86_64)\\.AppImage`, `${desktop}_(?:amd64|x86_64)\\.deb`,
   `${desktop}-\\d+\\.x86_64\\.rpm`,

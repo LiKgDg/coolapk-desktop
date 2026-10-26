@@ -74,7 +74,7 @@ jobs:
 
       - name: 测试版本与全平台产物检查
         if: matrix.task == 'unit'
-        run: node --test scripts/test-beta-release.mjs
+        run: node --test scripts/test-beta-release.mjs scripts/test-package-zip.mjs
 
       - name: 运行类型检查
         if: matrix.task == 'typecheck'
@@ -329,6 +329,24 @@ jobs:
         with:
           name: windows-${{ matrix.portableArch }}-portable
           path: src-tauri/target/portable/*.exe
+          if-no-files-found: error
+
+      - name: 打包 Windows 便携压缩包
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: |
+          args=(--arch '${{ matrix.portableArch }}')
+          if [[ -n '${{ matrix.portableTarget }}' ]]; then
+            args+=(--target '${{ matrix.portableTarget }}')
+          fi
+          node scripts/package-windows-zip.mjs "${args[@]}"
+
+      - name: 上传 Windows 便携压缩包
+        if: ${{ runner.os == 'Windows' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-${{ matrix.portableArch }}-portable-zip
+          path: src-tauri/target/portable/*.zip
           if-no-files-found: error
 
       - name: 校验 macOS App 包签名
@@ -656,19 +674,21 @@ jobs:
         run: gh release upload "$GITHUB_REF_NAME" ios-release/*.ipa --repo "$GITHUB_REPOSITORY" --clobber
 
   publish-windows-portable:
-    name: 发布 Windows 单文件便携版
+    name: 发布 Windows 便携版（单文件 + 压缩包）
     needs: build
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-22.04
     steps:
-      - name: 下载 Windows 单文件产物
+      - name: 下载 Windows 便携版产物
         uses: actions/download-artifact@v7
         with:
-          pattern: windows-*-portable
+          pattern: windows-*-portable*
           path: portable
           merge-multiple: true
 
       - name: 上传到 GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" portable/*.exe --repo "$GITHUB_REPOSITORY"
+        run: |
+          gh release upload "$GITHUB_REF_NAME" portable/*.exe --repo "$GITHUB_REPOSITORY"
+          gh release upload "$GITHUB_REF_NAME" portable/*.zip --repo "$GITHUB_REPOSITORY"

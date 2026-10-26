@@ -23,6 +23,7 @@
 
 | 操作系统 | 文件格式 | 推荐安装包 |
 | :--- | :--- | :--- |
+| **Windows 便携版** | `.zip` | `coolapk-desktop_x.x.x_x64-portable.zip` (x64) / `arm64-portable.zip` (ARM64) |
 | **Windows 安装版** | `.exe` | `coolapk-desktop_x.x.x_x64-setup.exe` (x64) / `arm64-setup.exe` (ARM64) |
 | **Windows 单文件版** | `.exe` | `coolapk-desktop_x.x.x_x64-portable.exe` (x64) / `arm64-portable.exe` (ARM64) |
 | **macOS** | `.dmg` / `.app` | `coolapk-desktop_x.x.x_aarch64.dmg` (Apple 芯片) / `x64.dmg` (Intel 芯片) |
@@ -30,7 +31,7 @@
 | **Android** | `.apk` / `.aab` | `coolapk-vx.y.z-android-arm64.apk` / `coolapk-vx.y.z-android-arm64.aab` |
 | **iPhone / iPad** | `.ipa` | `coolapk-vx.y.z-ios-arm64-unsigned.ipa`（未签名，需自行签名安装） |
 
-> 💡 **提示**：构建产物均由 GitHub Actions 自动化流程在云端打包。Windows 单文件版无需解压或安装，系统需已有 WebView2 Runtime。iOS IPA 为未签名设备包，不能直接安装到普通 iPhone/iPad，需要使用 AltStore、SideStore、Sideloadly 或自己的 Apple 证书完成签名。
+> 💡 **提示**：构建产物均由 GitHub Actions 自动化流程在云端打包。Windows 便携版推荐下载 `.zip`，解压后直接运行，无需安装；单文件版 `.exe` 与之内容相同，方便只想要一个文件的场景。两者都需要系统已有 WebView2 Runtime。iOS IPA 为未签名设备包，不能直接安装到普通 iPhone/iPad，需要使用 AltStore、SideStore、Sideloadly 或自己的 Apple 证书完成签名。
 
 ## 💬 QQ 交流群
 
@@ -113,6 +114,12 @@ npm run tauri dev
 生产构建可按当前平台选择产物格式：
 
 ```bash
+# Windows：一条命令构建并打包便携压缩包，不生成安装包
+npm run build:zip
+
+# Windows：已经构建过 release 可执行文件时，只重新打包压缩包
+npm run package:zip
+
 # Windows：构建 NSIS 安装包；原始 release 可执行文件即单文件版
 npm run tauri build -- --bundles nsis
 ./scripts/prepare-windows-portable.ps1 -Architecture x64
@@ -123,6 +130,10 @@ npm run tauri build -- --bundles appimage,deb,rpm
 # macOS
 npm run tauri build -- --bundles app,dmg
 ```
+
+`npm run build:zip` 会把 `src-tauri/target/release/coolapk_desktop.exe` 连同使用说明一起打成
+`src-tauri/target/portable/coolapk-desktop_<版本>_<架构>-portable.zip`，解压后双击即可运行，不需要安装。
+需要交叉编译产物时追加参数，例如 `npm run package:zip -- --arch arm64 --target aarch64-pc-windows-msvc`。
 
 ### Android APK
 
@@ -150,8 +161,8 @@ Tag 发布时，GitHub Actions 会构建签名的 ARM64 release APK 和 AAB，�
 
 安装包位于 `src-tauri/target/release/bundle/`。GitHub Actions 会提供：
 
-- Windows x64：NSIS 安装包 `-setup.exe`、单文件便携版 `x64-portable.exe`
-- Windows ARM64：NSIS 安装包 `-setup.exe`、单文件便携版 `arm64-portable.exe`
+- Windows x64：便携压缩包 `x64-portable.zip`、NSIS 安装包 `-setup.exe`、单文件便携版 `x64-portable.exe`
+- Windows ARM64：便携压缩包 `arm64-portable.zip`、NSIS 安装包 `-setup.exe`、单文件便携版 `arm64-portable.exe`
 - Linux x64：AppImage 免安装版 `.AppImage`、Debian 安装包 `.deb`、RPM 安装包 `.rpm`
 - macOS Apple 芯片：磁盘映像 `.dmg`、应用包 `.app`
 - macOS Intel：磁盘映像 `.dmg`、应用包 `.app`
@@ -194,7 +205,7 @@ git tag v1.2.3
 git push origin main v1.2.3
 ```
 
-Windows 客户端会自动识别当前运行方式：安装版下载同架构的 `-setup.exe` 静默升级，单文件版下载同架构的 `-portable.exe`，退出后原位替换并重启。两种更新包都必须与 Release 标签版本一致，避免装错版本。
+Windows 客户端会自动识别当前运行方式：安装版下载同架构的 `-setup.exe` 静默升级，便携版（含解压后的 `-portable.zip`）下载同架构的 `-portable.exe`，退出后原位替换并重启。两种更新包都必须与 Release 标签版本一致，避免装错版本。
 
 ## 常用检查
 
